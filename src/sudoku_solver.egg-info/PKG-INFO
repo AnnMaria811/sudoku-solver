@@ -1,0 +1,14 @@
+Metadata-Version: 2.4
+Name: sudoku-solver
+Version: 0.1.0
+Summary: CLI-first Sudoku image parser and solver.
+Requires-Python: >=3.14
+Description-Content-Type: text/markdown
+Requires-Dist: numpy>=2.4.0
+Requires-Dist: opencv-python>=4.10.0
+Provides-Extra: dev
+Requires-Dist: pytest>=9.0.0; extra == "dev"
+
+# Sudoku Solver
+
+CLI-first Sudoku image parser and solver for the RCSS 5243 course project.

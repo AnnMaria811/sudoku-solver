@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sudoku-solver"
+version = "0.1.0"
+description = "CLI-first Sudoku image parser and solver."
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+  "numpy>=2.4.0",
+  "opencv-python>=4.10.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=9.0.0",
+]
+
+[project.scripts]
+sudoku-solver = "sudoku_solver.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

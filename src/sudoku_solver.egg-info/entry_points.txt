@@ -1,0 +1,2 @@
+[console_scripts]
+sudoku-solver = sudoku_solver.cli:main
