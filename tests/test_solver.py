@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import pytest
 
 from sudoku_solver.solver import InvalidBoardError, solve_board
@@ -30,13 +28,17 @@ SOLUTION = [
 ]
 
 
-def test_solve_board_solves_a_standard_puzzle() -> None:
+def test_solve_board():
     assert solve_board(PUZZLE) == SOLUTION
 
 
-def test_solve_board_rejects_invalid_board() -> None:
-    invalid = [row[:] for row in PUZZLE]
-    invalid[0][1] = 5
-
+def test_solve_board_rejects_duplicates():
+    bad = [row[:] for row in PUZZLE]
+    bad[0][1] = 5
     with pytest.raises(InvalidBoardError):
-        solve_board(invalid)
+        solve_board(bad)
+
+
+def test_solve_board_rejects_wrong_size():
+    with pytest.raises(InvalidBoardError):
+        solve_board([[1, 2, 3]])
