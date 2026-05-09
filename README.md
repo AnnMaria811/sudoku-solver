@@ -22,9 +22,9 @@ This project takes a photo of a Sudoku puzzle, reads the digits using template-b
 
 ## 1. Introduction
 
-The goal of this project is to build a program that can look at a photo of a Sudoku puzzle and solve it automatically — finding the grid, reading the digits that are already filled in, and computing the missing ones. It sounds straightforward at first, but there are quite a few steps involved, and some parts are harder than expected, especially getting reliable digit recognition without any machine learning.
+The goal of this project is to build a program that can look at a photo of a Sudoku puzzle and solve it automatically finding the grid, reading the digits that are already filled in, and computing the missing ones. It sounds straightforward at first, but there are quite a few steps involved, and some parts are harder than expected, especially getting reliable digit recognition without any machine learning.
 
-The pipeline covers five stages: preprocessing the raw photo, isolating the outer frame of the grid, detecting its four corners, warping the image into a clean top-down square, reading the digits via template matching, and solving the puzzle with a backtracking algorithm. No machine learning is used at any point — digit recognition is done entirely through classical computer vision and pixel-level template comparison, as required by the project specification.
+The pipeline covers five stages: preprocessing the raw photo, isolating the outer frame of the grid, detecting its four corners, warping the image into a clean top-down square, reading the digits via template matching, and solving the puzzle with a backtracking algorithm. No machine learning is used at any point digit recognition is done entirely through classical computer vision and pixel-level template comparison, as required by the project specification.
 
 ---
 
@@ -38,7 +38,7 @@ A typical photo of a Sudoku puzzle is noisy, unevenly lit, and taken at an angle
 - **Digit variability** — the same digit looks quite different across puzzle sources: different fonts, stroke widths, sizes, and print quality all affect matching.
 - **Template mismatch** — since templates are generated synthetically using OpenCV's built-in font, there is an inevitable gap between the template shapes and real printed digits, which limits recognition accuracy.
 
-The project specification also specifically requires OCR to be implemented without machine learning — only pattern matching. This constraint is useful: building a basic matcher makes it very clear why ML-based approaches outperform template matching in practice.
+The project specification also specifically requires OCR to be implemented without machine learning only pattern matching. This constraint is useful: building a basic matcher makes it very clear why ML-based approaches outperform template matching in practice.
 
 ---
 
@@ -52,9 +52,9 @@ Before anything else, the image needs to be cleaned up. Photos taken with a phon
 
 1. **Convert to grayscale** — only brightness values are needed, not colour.
 2. **CLAHE** (Contrast Limited Adaptive Histogram Equalisation, clip limit 2.0, 8×8 tile grid) — fixes uneven lighting. Unlike global histogram equalisation, CLAHE works on small tiles independently and clips the amplification at a fixed limit, so it does not over-brighten already-light areas or introduce heavy noise. Without it, dark corners or bright reflections make the threshold step fail.
-3. **Gaussian blur** (7×7 kernel) — smooths out small specks of noise before thresholding.
-4. **Adaptive threshold** (block size 41, C = 7, inverse polarity) — converts the image to black and white. Adaptive thresholding is used instead of a global cutoff because different parts of the image can have very different lighting levels.
-5. **Morphological close** (3×3 kernel) — fills tiny gaps in the grid lines so they look solid and connected. This matters because broken lines confuse the contour detector in the next stage.
+3. **Gaussian blur** (7×7 kernel) smooths out small specks of noise before thresholding.
+4. **Adaptive threshold** (block size 41, C = 7, inverse polarity) converts the image to black and white. Adaptive thresholding is used instead of a global cutoff because different parts of the image can have very different lighting levels.
+5. **Morphological close** (3×3 kernel) fills tiny gaps in the grid lines so they look solid and connected. This matters because broken lines confuse the contour detector in the next stage.
 
 ### Stage 2 — Grid Detection (`grid_detection.py`)
 
@@ -66,7 +66,7 @@ The binarised image is searched for the Sudoku grid boundary:
 - A quadrilateral (4 corners) is preferred. If the approximation does not produce exactly 4 vertices, the minimum bounding rectangle is used as a fallback.
 - The largest valid quadrilateral by area is taken as the outer border of the puzzle.
 
-Once the 4 corners are found, they are sorted into a consistent order — top-left, top-right, bottom-right, bottom-left — using coordinate arithmetic: `x + y` is smallest at the top-left and largest at the bottom-right; `x − y` separates the other two.
+Once the 4 corners are found, they are sorted into a consistent order top-left, top-right, bottom-right, bottom-left using coordinate arithmetic: `x + y` is smallest at the top-left and largest at the bottom-right; `x − y` separates the other two.
 
 ### Stage 3 — Perspective Warp (`warp.py`)
 
@@ -80,7 +80,7 @@ This is the most technically involved part. No machine learning is used — only
 The warped 900×900 binary image is divided into an 9×9 grid of 100×100 cells. A margin of approximately 14 px is stripped from each edge to remove the grid lines. Inside the trimmed region, `cv2.connectedComponentsWithStats` finds all connected blobs. The largest blob above a minimum area threshold is kept as the digit candidate; anything smaller is treated as noise and discarded. The retained blob is centred on a fresh 32×32 canvas using `centre_on_canvas()`, which scales the glyph to fill the canvas (minus small padding) and places it at the centre. This normalisation is what makes fair comparison against templates possible.
 
 **Template generation:**  
-Templates for digits 1–9 are generated synthetically using OpenCV's `FONT_HERSHEY_SIMPLEX` (scale 2.2, thickness 5), then binarised and centred on the same 32×32 canvas. Custom templates can also be supplied — see [Custom Templates](#custom-templates) below.
+Templates for digits 1–9 are generated synthetically using OpenCV's `FONT_HERSHEY_SIMPLEX` (scale 2.2, thickness 5), then binarised and centred on the same 32×32 canvas. Custom templates can also be supplied see [Custom Templates](#custom-templates) below.
 
 **Matching:**  
 Each 32×32 cell image is compared against all nine templates using the **Sørensen–Dice coefficient**:
@@ -89,7 +89,7 @@ Each 32×32 cell image is compared against all nine templates using the **Søren
 Dice(A, B) = 2 × |A ∩ B| / (|A| + |B|)
 ```
 
-This measures the overlap between two binary images as a score from 0 to 1. Dice is used instead of raw pixel counting because it normalises by the size of both images — a narrow digit like "1" has far fewer foreground pixels than "8", so raw overlap would systematically favour wider templates. Dice removes that bias.
+This measures the overlap between two binary images as a score from 0 to 1. Dice is used instead of raw pixel counting because it normalises by the size of both images a narrow digit like "1" has far fewer foreground pixels than "8", so raw overlap would systematically favour wider templates. Dice removes that bias.
 
 If the best score is above 0.45, that digit is accepted. If nothing clears that threshold, the cell is treated as empty (0).
 
@@ -97,7 +97,7 @@ If the best score is above 0.45, that digit is accepted. If nothing clears that 
 
 The board is validated before solving. `validate_board` checks that the grid is 9×9, every value is in 0–9, and no digit appears twice in any row, column, or 3×3 box. If the OCR output already violates any constraint, an `InvalidBoardError` is raised immediately rather than running the solver on a broken board.
 
-Solving uses standard recursive backtracking: find the first empty cell, try each digit 1–9, check validity, recurse. If no digit works, backtrack to the previous cell and try the next candidate. The algorithm is correct and complete — it will always find a solution if one exists.
+Solving uses standard recursive backtracking: find the first empty cell, try each digit 1–9, check validity, recurse. If no digit works, backtrack to the previous cell and try the next candidate. The algorithm is correct and complete it will always find a solution if one exists.
 
 The solution is drawn on the warped grid image: OCR-read givens in blue, solver-filled digits in green.
 
@@ -150,7 +150,7 @@ Every failure comes from the same source: the Dice-score template matcher miside
 
 ### What this shows about template matching vs. ML
 
-The 0% end-to-end success rate is a clear demonstration of why machine learning is used for OCR in practice. Template matching works when the input font closely matches the template font — it is essentially exact shape comparison. The moment the font differs, stroke weights vary, or digits are slightly rotated, accuracy collapses. A convolutional neural network learns features that are invariant to these variations through training on diverse examples. Building this basic matcher makes that contrast concrete in a way that just reading about it does not.
+The 0% end-to-end success rate is a clear demonstration of why machine learning is used for OCR in practice. Template matching works when the input font closely matches the template font it is essentially exact shape comparison. The moment the font differs, stroke weights vary, or digits are slightly rotated, accuracy collapses. A convolutional neural network learns features that are invariant to these variations through training on diverse examples. Building this basic matcher makes that contrast concrete in a way that just reading about it does not.
 
 ---
 
@@ -172,11 +172,11 @@ An earlier version included a `resolve_candidate_board` step that used Sudoku ro
 
 ## 7. Conclusion
 
-The pipeline implements all required components: preprocessing, grid isolation, corner detection, perspective warping, cell extraction, template-based OCR using the Dice similarity coefficient, and a validated backtracking solver. The code is modular — each stage is a separate file with clear inputs and outputs — and the pipeline saves intermediate images at every step, making failures easy to trace.
+The pipeline implements all required components: preprocessing, grid isolation, corner detection, perspective warping, cell extraction, template-based OCR using the Dice similarity coefficient, and a validated backtracking solver. The code is modular each stage is a separate file with clear inputs and outputs and the pipeline saves intermediate images at every step, making failures easy to trace.
 
 The preprocessing and geometry stages (Milestone 1) work correctly on 15 out of 16 test images. The OCR stage correctly classifies cells and measures match confidence using Dice, but the synthetic Hershey templates do not match real puzzle digit fonts closely enough to produce a duplicate-free board on any of the test cases. As a result, the solver is never reached — the board validator correctly rejects every recognised board before solving starts.
 
-This outcome is informative rather than just a failure. It makes a concrete, measurable case for why machine-learning-based OCR replaced template matching: the template approach is brittle to font variation in a way that is difficult to engineer around without essentially re-implementing feature learning by hand. The pipeline is designed to support easy improvement — swapping in better templates or reintroducing candidate resolution are both one-file changes.
+This outcome is informative rather than just a failure. It makes a concrete, measurable case for why machine-learning-based OCR replaced template matching: the template approach is brittle to font variation in a way that is difficult to engineer around without essentially re-implementing feature learning by hand. The pipeline is designed to support easy improvement swapping in better templates or reintroducing candidate resolution are both one-file changes.
 
 ---
 
